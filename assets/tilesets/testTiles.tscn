@@ -16,8 +16,8 @@ hframes = 6
 vframes = 3
 
 [node name="box" type="StaticBody2D" parent="block"]
-collision_layer = 2
-collision_mask = 0
+collision_layer = 16
+collision_mask = 14
 
 [node name="shape" type="CollisionShape2D" parent="block/box"]
 shape = SubResource( 1 )
@@ -29,8 +29,8 @@ vframes = 3
 frame = 9
 
 [node name="box" type="StaticBody2D" parent="laddertop"]
-collision_layer = 2
-collision_mask = 0
+collision_layer = 16
+collision_mask = 14
 
 [node name="shape" type="CollisionShape2D" parent="laddertop/box"]
 position = Vector2( 0, -7 )

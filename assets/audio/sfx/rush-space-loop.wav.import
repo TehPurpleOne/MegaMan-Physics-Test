@@ -1,0 +1,23 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/rush-space-loop.wav-b7d754aa3573ec4300bd2be4e4c0386f.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx/rush-space-loop.wav"
+dest_files=[ "res://.import/rush-space-loop.wav-b7d754aa3573ec4300bd2be4e4c0386f.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0

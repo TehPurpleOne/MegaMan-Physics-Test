@@ -1,0 +1,23 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/wpn-get-iv-v-a.wav-c492606b46c36d085ec3c9fe99276859.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx/wpn-get-iv-v-a.wav"
+dest_files=[ "res://.import/wpn-get-iv-v-a.wav-c492606b46c36d085ec3c9fe99276859.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0

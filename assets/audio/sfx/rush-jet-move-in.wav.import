@@ -1,0 +1,23 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/rush-jet-move-in.wav-b5d276d21c5388ad899af10ddd1ad957.sample"
+
+[deps]
+
+source_file="res://assets/audio/sfx/rush-jet-move-in.wav"
+dest_files=[ "res://.import/rush-jet-move-in.wav-b5d276d21c5388ad899af10ddd1ad957.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0

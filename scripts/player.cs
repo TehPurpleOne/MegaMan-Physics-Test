@@ -32,6 +32,7 @@ public class player : KinematicBody2D
     public Vector2 velocity = Vector2.Zero; //Speed and angle the player will be moving.
     public float xSpeedMod = 1;             //This value can be used to speed up or slow down the player as needed (Like when they are walking on ice or sliding).
     public float xSpeed = 0;                //The final horizontal speed value for the player once movement calculations are complete.
+    public float gravMod = 1;               //Gravity modifier. Used to make the player heavy or for water physics.
     public int slideDelay = 0;              //Used to limit how far a slide can travel and when the player can slide again.
     public int maxAirJumps = 1;             //Maximum air jumps the player can perform. Used for double jumping.
     public int airJumps = 1;                //Jumps that can be performed in air.
@@ -244,6 +245,8 @@ public class player : KinematicBody2D
         velocity.x = xSpeed;
 
         velocity = MoveAndSlide(velocity, Vector2.Up);
+
+        GlobalPosition = new Vector2(Mathf.Clamp(GlobalPosition.x, 0, 512), GlobalPosition.y);
     }
 
     public void applyGravity(float delta)
