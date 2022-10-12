@@ -43,12 +43,6 @@ hframes = 6
 vframes = 3
 frame = 9
 
-[node name="watertop" type="Sprite" parent="."]
-texture = ExtResource( 1 )
-hframes = 6
-vframes = 3
-frame = 12
-
 [node name="water" type="Sprite" parent="."]
 texture = ExtResource( 1 )
 hframes = 6
