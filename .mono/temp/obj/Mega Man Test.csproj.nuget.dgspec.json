@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\MegaMan Test\\Mega Man Test.csproj": {}
+    "C:\\Users\\GALC\\Documents\\stuff\\projects\\MegaMan-Physics-Test\\Mega Man Test.csproj": {}
   },
   "projects": {
-    "D:\\MegaMan Test\\Mega Man Test.csproj": {
+    "C:\\Users\\GALC\\Documents\\stuff\\projects\\MegaMan-Physics-Test\\Mega Man Test.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\MegaMan Test\\Mega Man Test.csproj",
+        "projectUniqueName": "C:\\Users\\GALC\\Documents\\stuff\\projects\\MegaMan-Physics-Test\\Mega Man Test.csproj",
         "projectName": "Mega Man Test",
-        "projectPath": "D:\\MegaMan Test\\Mega Man Test.csproj",
-        "packagesPath": "C:\\Users\\nineb\\.nuget\\packages\\",
-        "outputPath": "D:\\MegaMan Test\\.mono\\temp\\obj\\",
+        "projectPath": "C:\\Users\\GALC\\Documents\\stuff\\projects\\MegaMan-Physics-Test\\Mega Man Test.csproj",
+        "packagesPath": "C:\\Users\\GALC\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\GALC\\Documents\\stuff\\projects\\MegaMan-Physics-Test\\.mono\\temp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\nineb\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\GALC\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net472"
@@ -37,7 +37,7 @@
       "frameworks": {
         "net472": {
           "targetAlias": "net472",
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.302\\RuntimeIdentifierGraph.json"
         }
       }
     }

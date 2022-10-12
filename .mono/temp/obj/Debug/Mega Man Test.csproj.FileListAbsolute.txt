@@ -7,3 +7,12 @@ D:\MegaMan Test\.mono\temp\obj\Debug\Mega Man Test.AssemblyInfo.cs
 D:\MegaMan Test\.mono\temp\obj\Debug\Mega Man Test.csproj.CoreCompileInputs.cache
 D:\MegaMan Test\.mono\temp\obj\Debug\Mega Man Test.dll
 D:\MegaMan Test\.mono\temp\obj\Debug\Mega Man Test.pdb
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\bin\Debug\Mega Man Test.dll
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\bin\Debug\Mega Man Test.pdb
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\obj\Debug\Mega Man Test.csproj.AssemblyReference.cache
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\obj\Debug\Mega Man Test.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\obj\Debug\Mega Man Test.AssemblyInfoInputs.cache
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\obj\Debug\Mega Man Test.AssemblyInfo.cs
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\obj\Debug\Mega Man Test.csproj.CoreCompileInputs.cache
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\obj\Debug\Mega Man Test.dll
+C:\Users\GALC\Documents\stuff\projects\MegaMan-Physics-Test\.mono\temp\obj\Debug\Mega Man Test.pdb

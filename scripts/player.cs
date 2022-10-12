@@ -22,13 +22,15 @@ public class player : KinematicBody2D
     const float JUMPSPD = -310;         //Player's jump speed when the jump button is pressed.
     const float GRAVITY = 900;          //Gravity strength.
 
-    //Variables
+    //Controls
     public Vector2 dirTap = Vector2.Zero;   //Determines a tapped direction.
     public Vector2 dirHold = Vector2.Zero;  //Determines if any directions are being held.
     public float lastXDir = 0;              //Records the last horizontal direction used by the player.
     public bool jumpTap = false;            //Player tapped the jump button.
     public bool jumpHold = false;           //Player is holding the jump button.
     public bool fireTap = false;            //Player tapped the fire button.
+
+    //Variables
     public Vector2 velocity = Vector2.Zero; //Speed and angle the player will be moving.
     public float xSpeedMod = 1;             //This value can be used to speed up or slow down the player as needed (Like when they are walking on ice or sliding).
     public float xSpeed = 0;                //The final horizontal speed value for the player once movement calculations are complete.
@@ -39,11 +41,16 @@ public class player : KinematicBody2D
     public int shotDelay = 0;               //Timer for how long the shooting frames are on screen before reverting to normal.
     public int hurtTime = 0;                //How long the player plays the "damage" animation when hit.
     public int iFrames = 0;                 //How long the player blinks before being able to take damage again.
+    public int overlap = 0;                 //Tile ID of what the player is currently overlapping
+    public int lastOverlap = 0;             //Tile ID of the previously overlapped tile.
+    public int below = 0;                   //Tile ID of the tile directly below the player.
+    public Vector2 overlapPos;              //Overlapping tile position.
+    public float xSnap = 0;                 //X Position to snap to when ladders are activated.
 
     //Flags
     public bool spriteFlip = false;     //This along with actualFlip determine which direction the player is facing. Why two? See climbing functions.
     public bool actualFlip = false;     //''
-    public bool forceIdle = false;      //Used to prevent the player from going into their jumping animation right away. Useful for after the player teleports in or reaches the top of a ladder.
+    public bool forceIdle = false;      //Forces the FSM into the Idle state. Useful for reaching the tops of ladders.
     public bool stopX = false;          //Stop X movement as needed (During the little step state for example).
     public bool land = false;           //Play the landing sound effect. May not be needed with the new FSM design.
     public bool stop = true;            //Stops the player from moving if true. USed to prevent movement during certain animations
@@ -52,7 +59,7 @@ public class player : KinematicBody2D
     //MegaMan will use a Finite State Machine which will limit which states he can enter, exit, and when those occur.
     public enum state {BEAM, APPEAR, LEAVE, IDLE, LILSTEP, RUN, JUMP, SLIDE, CLIMB, CLIMBTOP, HURT};
     public enum texture {NORMAL, SHOOT} //There are other texture states that make up a classic MegaMan game, but we'll keep it simple for now. I'll update the project files later if enough people want to know how throwing, etc is handled.
-    public Array last = new Array {null, null};
+    public Array last = new Array {null, null, null};
 
     public override void _Ready()
     {
@@ -101,6 +108,21 @@ public class player : KinematicBody2D
             }
         }
         //Code to actually flip the player's sprite is below to prevent an animation triggering one frame before the direction change occurs.
+
+        //Set the gravity modifier for whenever the player is underwater or not.
+        if(lastOverlap != overlap)
+        {
+            if(overlap == 3) //Tile ID of 3 indicates water for this example. Your tiles may vary.
+            {
+                gravMod = 3;
+            }
+            else
+            {
+                gravMod = 1;
+            }
+
+            lastOverlap = overlap;
+        }
 
         switch(last[0])
         {
@@ -179,6 +201,71 @@ public class player : KinematicBody2D
                 airJumps = maxAirJumps;
             }
             break;
+
+            //Climbing States
+            case (int)state.CLIMB:
+
+            if(dirHold.y == 0 && anim.IsPlaying())
+            {
+                anim.Stop(false); //Stop the climbing animation if the player isn't moving, but save the timing position.
+            }
+
+            if(dirHold.y != 0 && !anim.IsPlaying())
+            {
+                anim.Play((string)anim.CurrentAnimation); //Resume animation if the player is moving.
+            }
+
+            if(overlap != 2 && overlap != 1)
+            {
+                //Player has reached the bottom of a ladder, make them fall.
+                velocity.y = 0;
+                changeAnim(state.JUMP);
+            }
+
+            if(IsOnFloor() && dirHold.y == 1)
+            {
+                //Player touched the floor while climbing. Swap to Idle.
+                changeAnim(state.IDLE);
+            }
+
+            if(jumpTap)
+            {
+                //Player jumped while on the ladder.
+                changeAnim(state.JUMP);
+            }
+
+            if(overlap == 1 && GlobalPosition.y < overlapPos.y + 6)
+            {
+                //When the player is close to the top, but not above it, swap to the climb up/down animation.
+                changeAnim(state.CLIMBTOP);
+            }
+
+            break;
+
+            case (int)state.CLIMBTOP:
+
+            if(jumpTap)
+            {
+                //Player jumped while on the ladder.
+                changeAnim(state.JUMP);
+            }
+
+            if(overlap == 1 && GlobalPosition.y > overlapPos.y + 6)
+            {
+                //When the player is low enough on the ladder, swap to the climbing animation
+                changeAnim(state.CLIMB);
+            }
+
+            if(overlap != 1 && overlap != 2 && dirHold.y == -1)
+            {
+                //When the player is on top of the ladder, disable climbing functions.
+                GlobalPosition = new Vector2(GlobalPosition.x, overlapPos.y + 6);
+                velocity.y = 0;
+                forceIdle = true;
+                changeAnim(state.IDLE);
+            }
+
+            break;
         }
 
         if((int)last[0] == (int)state.CLIMB || (int)last[0] == (int)state.CLIMBTOP)
@@ -232,6 +319,11 @@ public class player : KinematicBody2D
             applyXSpd();
         }
 
+        if((int)last[0] == (int)state.CLIMB || (int)last[0] == (int)state.CLIMBTOP)
+        {
+            applyClimbSpd();
+        }
+
         if((int)last[0] == (int)state.SLIDE)
         { //Player is sliding. Move the player.
             applySlideSpd();
@@ -240,6 +332,13 @@ public class player : KinematicBody2D
         if((int)last[0] != (int)state.BEAM && (int)last[0] != (int)state.APPEAR && (int)last[0] != (int)state.LEAVE && (int)last[0] != (int)state.CLIMB && (int)last[0] != (int)state.CLIMBTOP)
         { //If the player's state is NOT one of the above listed, apply gravity.
             applyGravity(delta);
+        }
+
+        //Check to see if the player is trying to activate ladder functions.
+        //Ladder functions begin here to prevent any unwanted movement after activation.
+        if((int)last[0] == (int)state.IDLE || (int)last[0] == (int)state.LILSTEP || (int)last[0] == (int)state.RUN || (int)last[0] == (int)state.JUMP || (int)last[0] == (int)state.SLIDE)
+        {
+            ladderCheck();
         }
 
         velocity.x = xSpeed;
@@ -252,17 +351,18 @@ public class player : KinematicBody2D
     public void applyGravity(float delta)
     {
         //Applies gravity to the player. Not needed in all states.
-        velocity.y += GRAVITY * delta; //delta is only needed when calculating gravity. Using it when calculating horizontal speed would measn increasing said speed to compensate.
+        velocity.y += (GRAVITY * delta) / gravMod; //delta is only needed when calculating gravity. Using it when calculating horizontal speed would measn increasing said speed to compensate.
     }
 
     public void applyXSpd()
     {
-        //Applies horizontal speed based on the direction being held.
+        //Applies horizontal speed based on the direction being held, unless the stopXflag is on.
         if(!stopX)
         {
             xSpeed = (dirHold.x * RUNSPD) / xSpeedMod;
         }
-        else{
+        else
+        {
             xSpeed = 0;
         }
     }
@@ -270,6 +370,19 @@ public class player : KinematicBody2D
     public void applySlideSpd()
     {
         //Applies horizontal speed based on the direction the sprite is facing.
+    }
+
+    public void applyClimbSpd()
+    {
+        //Applies climbing velocity to the player. stopX is repurposed here to prevent climing in certain situations.
+        if(!stopX)
+        {
+            velocity.y = (dirHold.y * RUNSPD) * 0.75F;
+        }
+        else
+        {
+            velocity.y = 0;
+        }
     }
 
     public void hitboxCheck()
@@ -303,15 +416,46 @@ public class player : KinematicBody2D
 
     public void groundCheck()
     {
-        if(!IsOnFloor())
+        if(!IsOnFloor() && !forceIdle)
         {
             changeAnim(state.JUMP);
+        }
+
+        if(IsOnFloor() && forceIdle)
+        {
+            forceIdle = false;
         }
     }
 
     public void slideCheck()
     {
 
+    }
+
+    public void ladderCheck()
+    {
+        if(dirTap.y == -1 && overlap == 2 || dirTap.y == -1 && overlap == 1)
+        {
+            //The player pressed up while overlapping a ladder.
+            //Snap the player into position and set velocity to 0;
+            GlobalPosition = new Vector2(xSnap, GlobalPosition.y);
+            xSpeed = 0;
+            velocity = Vector2.Zero;
+            //Change the state to climbing.
+            changeAnim(state.CLIMB);
+        }
+
+        if(dirTap.y == 1 && below == 1)
+        {
+            //The player pressed down while standing on top of a ladder. As of right now, the player is able to climb down a ladder while sliding on top of it. To change this, simply
+            //delete the slide state above where the game calls the ladderCheck function.
+            //Snap the player into position and set velocity to 0;
+            GlobalPosition = new Vector2(xSnap, GlobalPosition.y + 8);
+            xSpeed = 0;
+            velocity = Vector2.Zero;
+            //Change the state to the top of a ladder.
+            changeAnim(state.CLIMBTOP);
+        }
     }
 
     public void changeTexture(texture which)
@@ -328,7 +472,8 @@ public class player : KinematicBody2D
             break;
         }
 
-        last[1] = which; //Save the texture value for later.
+        //Save the last texture called.
+        last[2] = which;
     }
 
     public void changeAnim(state which)
@@ -376,10 +521,12 @@ public class player : KinematicBody2D
 
                 case state.CLIMB:
                 anim.Play("climb");
+                stopX = false; //Same failsafe as above.
                 break;
 
                 case state.CLIMBTOP:
                 anim.Play("climbTop");
+                stopX = false; //Same failsafe as above.
                 break;
 
                 case state.HURT:
@@ -413,7 +560,6 @@ public class player : KinematicBody2D
             }
             stopX = false; //Be sure to turn off stopX here, otherwise you won't be able to move!
             break;
-
         }
     }
 }

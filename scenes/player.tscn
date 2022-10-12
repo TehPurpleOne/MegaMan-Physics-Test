@@ -71,7 +71,7 @@ tracks/0/keys = {
 }
 
 [sub_resource type="Animation" id=6]
-resource_name = "climbtop"
+resource_name = "climbTop"
 length = 0.1
 loop = true
 tracks/0/type = "value"
@@ -213,7 +213,7 @@ anims/RESET = SubResource( 2 )
 anims/beamIn = SubResource( 3 )
 anims/beamOut = SubResource( 4 )
 anims/climb = SubResource( 5 )
-anims/climbtop = SubResource( 6 )
+anims/climbTop = SubResource( 6 )
 anims/hurt = SubResource( 7 )
 anims/idle = SubResource( 8 )
 anims/jump = SubResource( 9 )
