@@ -4,7 +4,7 @@ using Array = Godot.Collections.Array;
 
 public class player : KinematicBody2D
 {
-    //This is a simple test engine based on the NES style MegaMan games. It will not be 100% accurate, but as close as I can get withing my abilities.
+    //This is a simple test engine based on the NES style MegaMan games. It will not be 100% accurate, but as close as I can get within my abilities.
     //Everything below will be commented to explain what they do and where.
     
     //Make values for the nodes in the player scene so they can be called as necessary.
