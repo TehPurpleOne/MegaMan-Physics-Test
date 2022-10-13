@@ -12,7 +12,8 @@ public class player : KinematicBody2D
     public AnimationPlayer anim;        //The animation player.
     public CollisionShape2D standBox;   //This hitbox is used when the player is no sliding.
     public CollisionShape2D slideBox;   //This box is used when sliding.
-    public Area2D obsCheck;           //Check for low ceilings while sliding.
+    public Area2D obsCheck;             //Check for low ceilings while sliding.
+    public CollisionShape2D wallBox;    //Check if the player is against a wall before a slide.
 
     //Preload the textures needed for the player. These will be used to swap between Rock's normal frames and his shooting poses without resetting animations.
     public Texture nTexture = (Texture)GD.Load("res://assets/player/mega-norm.png");
@@ -30,6 +31,7 @@ public class player : KinematicBody2D
     public bool jumpTap = false;            //Player tapped the jump button.
     public bool jumpHold = false;           //Player is holding the jump button.
     public bool fireTap = false;            //Player tapped the fire button.
+    public bool hurtTap = false;            //Damage the player.
 
     //Variables
     public Vector2 velocity = Vector2.Zero; //Speed and angle the player will be moving.
@@ -53,7 +55,7 @@ public class player : KinematicBody2D
     public bool actualFlip = false;     //''
     public bool forceIdle = false;      //Forces the FSM into the Idle state. Useful for reaching the tops of ladders.
     public bool stopX = false;          //Stop X movement as needed (During the little step state for example).
-    public bool safeStop = false;       //Flag to determine if it's safe for the player to come out of their slide.
+    public bool safeStop = true;       //Flag to determine if it's safe for the player to come out of their slide.
     public bool land = false;           //Play the landing sound effect. May not be needed with the new FSM design.
     public bool stop = true;            //Stops the player from moving if true. USed to prevent movement during certain animations
 
@@ -71,6 +73,7 @@ public class player : KinematicBody2D
         standBox = (CollisionShape2D)GetChild(2);
         slideBox = (CollisionShape2D)GetChild(3);
         obsCheck = (Area2D)GetChild(4);
+        wallBox = (CollisionShape2D)obsCheck.GetChild(1);
 
         //Initialize the player's animations and texture.
         changeAnim(state.BEAM);
@@ -91,6 +94,7 @@ public class player : KinematicBody2D
         jumpTap = Input.IsActionJustPressed("jump");
         jumpHold = Input.IsActionPressed("jump");
         fireTap = Input.IsActionJustPressed("fire");
+        hurtTap = Input.IsActionJustPressed("damage");
 
         //Change the player direction.
         if((int)last[0] == (int)state.IDLE || (int)last[0] == (int)state.LILSTEP || (int)last[0] == (int)state.RUN || (int)last[0] == (int)state.JUMP || (int)last[0] == (int)state.SLIDE)
@@ -101,12 +105,15 @@ public class player : KinematicBody2D
                 case -1:
                 actualFlip = true;
                 spriteFlip = true;
-
+                slideBox.Position = new Vector2(1.5F, 3); //We'll also orient the collision boxes here for smoother gameplay.
+                wallBox.Position = new Vector2(-7.5F, 3);
                 break;
 
                 case 1:
                 actualFlip = false;
                 spriteFlip = false;
+                slideBox.Position = new Vector2(-1.5F, 3);
+                wallBox.Position = new Vector2(7.5F, 3);
                 break;
 
             }
@@ -130,33 +137,7 @@ public class player : KinematicBody2D
             }
         }
 
-        //Flip the sprite accordingly.
-        if((int)last[0] != (int)state.CLIMB && (int)last[0] != (int)state.CLIMBTOP)
-        {
-            //No climbing restriction, flip as needed.
-            if(sprite.FlipH != spriteFlip)
-            {
-                sprite.FlipH = spriteFlip;
-            }
-        }
-        else
-        {
-            //Player is climbing.
-            if(shotDelay == 0)
-            {
-                if(sprite.FlipH != spriteFlip)
-                {
-                    sprite.FlipH = spriteFlip;
-                }
-            }
-            else
-            {
-                if(sprite.FlipH != actualFlip)
-                {
-                    sprite.FlipH = actualFlip;
-                }
-            }
-        }
+        //Sprite flipping for climbing was moved below the weapon check to prevent issues with animation.
 
         //Set the gravity modifier for whenever the player is underwater or not.
         if(lastOverlap != overlap)
@@ -178,6 +159,8 @@ public class player : KinematicBody2D
         {
             slideDelay --;
         }
+
+        hitboxCheck();
 
         switch(last[0])
         {
@@ -269,6 +252,15 @@ public class player : KinematicBody2D
                 anim.Play((string)anim.CurrentAnimation); //Resume animation if the player is moving.
             }
 
+            if(shotDelay > 0) //Stop movement if shot delay is greater thasn 0;
+            {
+                stopX = true;
+            }
+            else
+            {
+                stopX = false;
+            }
+
             if(overlap != 2 && overlap != 1)
             {
                 //Player has reached the bottom of a ladder, make them fall.
@@ -297,6 +289,15 @@ public class player : KinematicBody2D
             break;
 
             case (int)state.CLIMBTOP:
+            if(shotDelay > 0) //Stop movement if shot delay is greater thasn 0;
+            {
+                stopX = true;
+            }
+            else
+            {
+                stopX = false;
+            }
+
             if(jumpTap)
             {
                 //Player jumped while on the ladder.
@@ -354,13 +355,119 @@ public class player : KinematicBody2D
                 changeAnim(state.IDLE);
             }
 
-            if(slideDelay == 4 && safeStop)
+            if(slideDelay <= 4 && safeStop)
             {
                 //Setting the slide delay to 4 will cancel the slide, but then give a few frames before the player can slide again.
                 changeAnim(state.IDLE);
             }
 
             break;
+
+            //Player has taken damage.
+            case (int)state.HURT:
+            if((int)last[1] != 1) //Apply a special xSpeed value unless the player is sliding under a low ceiling.
+            {
+                if(sprite.FlipH) 
+                {
+                    xSpeed = 50;
+                }
+                else
+                {
+                    xSpeed = -50;
+                }
+            }
+            else
+            {
+                xSpeed = 0;
+            }
+
+            if(hurtTime > 0) //Subtract from Hurt Time
+            {
+                hurtTime --;
+            }
+
+            if(hurtTime == 72) //Allow the player to regain control once the timer hits a certain value.
+            {
+                //This is where last[1] comes into play. If the player is under a low ceiling, continue the slide.
+                if((int)last[1] == 1)
+                {
+                    changeAnim(state.SLIDE);
+                }
+                else
+                {
+                    changeAnim(state.IDLE);
+                }
+            }
+            break;
+        }
+
+        //Make the player blink until Hurt Time hits 0.
+        if(hurtTime > 0 && (int)last[0] != (int)state.HURT)
+        {
+            iFrames ++;
+            iFrames = Mathf.Wrap(iFrames, 0, 2);
+
+            if(iFrames == 0)
+            {
+                int showHide = Convert.ToInt32(sprite.Visible);
+                showHide ++;
+                showHide = Mathf.Wrap(showHide, 0, 2);
+                sprite.Visible = Convert.ToBoolean(showHide);
+            }
+
+            hurtTime --;
+        }
+
+        if(hurtTime == 0 && !sprite.Visible) //Hurt timer has expired. Stop the flashing.
+        {
+            sprite.Show();
+        }
+
+        //Check to see if the player fired their weapon this frame. If so, swap textures.
+        //NOTE: This function will need to be altered if you plan on making a game with multiple weapons. Below is just for this example.
+        weaponCheck();
+
+        if(shotDelay > 0 && (int)last[2] != (int)texture.SHOOT)
+        {
+            changeTexture(texture.SHOOT);
+        }
+
+        if(shotDelay > 0) //Subtract from the shot delay timer.
+        {
+            shotDelay --;
+        }
+
+        if(shotDelay == 0 && (int)last[2] != (int)texture.NORMAL) //TImer is at 0, reset to the normal texture.
+        {
+            changeTexture(texture.NORMAL);
+        }
+
+        //Flip the sprite accordingly.
+        if((int)last[0] != (int)state.CLIMB && (int)last[0] != (int)state.CLIMBTOP)
+        {
+            //No climbing restriction, flip as needed.
+            if(sprite.FlipH != spriteFlip)
+            {
+                sprite.FlipH = spriteFlip;
+            }
+        }
+        else
+        {
+            //Player is climbing.
+            if(shotDelay == 0)
+            {
+                if(sprite.FlipH != spriteFlip)
+                {
+                    sprite.FlipH = spriteFlip;
+                }
+            }
+            else
+            {
+                if(sprite.FlipH != actualFlip)
+                {
+                    sprite.FlipH = actualFlip;
+                }
+            }
         }
 
         if((int)last[0] != (int)state.BEAM && (int)last[0] != (int)state.APPEAR && (int)last[0] != (int)state.LEAVE && (int)last[0] != (int)state.CLIMB && (int)last[0] != (int)state.CLIMBTOP && (int)last[0] != (int)state.SLIDE && (int)last[0] != (int)state.HURT)
@@ -390,16 +497,18 @@ public class player : KinematicBody2D
             ladderCheck();
         }
 
-        //Set the appropriate collision box when sliding or not.
-        if((int)last[0] == (int)state.SLIDE && !standBox.Disabled)
+        //Set the appropriate collision box when sliding or not. Ignore if in the hurt state.
+        if((int)last[0] == (int)state.SLIDE && (int)last[0] != (int)state.HURT && !standBox.Disabled)
         {
             slideBox.Disabled = false;
             standBox.Disabled = true;
+            wallBox.Disabled = true;
         }
-        if((int)last[0] != (int)state.SLIDE && standBox.Disabled)
+        if((int)last[0] != (int)state.SLIDE && (int)last[0] != (int)state.HURT && standBox.Disabled)
         {
             slideBox.Disabled = true;
             standBox.Disabled = false;
+            wallBox.Disabled = false;
         }
 
         //Set X velocity to the XSpeed value and move the player.
@@ -441,7 +550,7 @@ public class player : KinematicBody2D
             sdir = 1;
         }
 
-        xSpeed = ((sdir * RUNSPD) * 2.5F) / xSpeedMod;
+        xSpeed = ((sdir * RUNSPD) * 2F) / xSpeedMod;
     }
 
     public void applyClimbSpd()
@@ -461,11 +570,20 @@ public class player : KinematicBody2D
     {
         //Add an Area2D or two to the scene and replace the function below so the player can recevie damage or pick up items.
         //Since we aren't using an Area2D for collision detection with other objects, we are going to simulate the player getting hit by pressing the spacebar.
-    }
-
-    public void damage()
-    {
-        //Damage functions.
+        if((int)last[0] != (int)state.BEAM && (int)last[0] != (int)state.APPEAR && (int)last[0] != (int)state.LEAVE && hurtTime == 0 && hurtTap)
+        {
+            if(!safeStop) //First, we check to see if the player is under a low ceiling. If so, set last[1] to 1 to prevent the player from getting stuck once the hurt animation is complete.
+            {
+                last[1] = 1;
+            }
+            else
+            {
+                last[1] = 0;
+            }
+            changeAnim(state.HURT);
+            velocity.y = 0;
+            hurtTime = 96;
+        }
     }
 
     public void jumpCheck()
@@ -488,6 +606,7 @@ public class player : KinematicBody2D
 
     public void groundCheck()
     {
+        //Check to see if the player is on the ground. If now, swap to the jump/fall state.
         if(!IsOnFloor() && !forceIdle)
         {
             changeAnim(state.JUMP);
@@ -497,7 +616,7 @@ public class player : KinematicBody2D
             }
         }
 
-        if(IsOnFloor() && forceIdle)
+        if(IsOnFloor() && forceIdle) //Turn force idle off when on the ground to prevent issues with animations.
         {
             forceIdle = false;
         }
@@ -505,7 +624,17 @@ public class player : KinematicBody2D
 
     public void slideCheck()
     {
-        if(dirHold.y == 1 && jumpTap && slideDelay == 0)
+        //First, check to see if the player is up against a wall. This is to prevent the player from getting stuck.
+        var walls = obsCheck.GetOverlappingBodies();
+        bool onWall = false;
+
+        if(walls.Count > 0)
+        {
+            onWall = true;
+        }
+
+        //If no wall detected, start slide functions.
+        if(dirHold.y == 1 && jumpTap && slideDelay == 0 && !onWall)
         {
             changeAnim(state.SLIDE);
             if(sprite.FlipH)
@@ -543,6 +672,15 @@ public class player : KinematicBody2D
             velocity = Vector2.Zero;
             //Change the state to the top of a ladder.
             changeAnim(state.CLIMBTOP);
+        }
+    }
+
+    public void weaponCheck()
+    {
+        //This example lacks weapons. I'll leave that up to you to get creative here. Instead, we'll swap textures to simulate a weapon being fired.
+        if(fireTap && (int)last[0] != (int)state.BEAM && (int)last[0] != (int)state.APPEAR && (int)last[0] != (int)state.LEAVE && (int)last[0] != (int)state.SLIDE && (int)last[0] != (int)state.HURT)
+        {
+            shotDelay = 25;
         }
     }
 
