@@ -11,3 +11,7 @@ Z - Jump
 X - Fire
 
 Space - Damage Player
+
+https://youtu.be/ehjorc1J9wI
+
+The above video will give you a full breakdown of the code and how everything works.
