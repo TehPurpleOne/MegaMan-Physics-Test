@@ -56,7 +56,6 @@ public class player : KinematicBody2D
     public bool forceIdle = false;      //Forces the FSM into the Idle state. Useful for reaching the tops of ladders.
     public bool stopX = false;          //Stop X movement as needed (During the little step state for example).
     public bool safeStop = true;       //Flag to determine if it's safe for the player to come out of their slide.
-    public bool land = false;           //Play the landing sound effect. May not be needed with the new FSM design.
     public bool stop = true;            //Stops the player from moving if true. USed to prevent movement during certain animations
 
     //Player States
@@ -516,7 +515,7 @@ public class player : KinematicBody2D
         velocity = MoveAndSlide(velocity, Vector2.Up);
 
         //Clamp the player's X position to keep them on screen.
-        GlobalPosition = new Vector2(Mathf.Clamp(GlobalPosition.x, 0, 512), GlobalPosition.y);
+        GlobalPosition = new Vector2(Mathf.Clamp(GlobalPosition.x, 7, 505), GlobalPosition.y);
     }
 
     public void applyGravity(float delta)
