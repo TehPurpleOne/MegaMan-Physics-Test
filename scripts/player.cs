@@ -95,6 +95,23 @@ public class player : KinematicBody2D
         fireTap = Input.IsActionJustPressed("fire");
         hurtTap = Input.IsActionJustPressed("damage");
 
+        /* switch((state)last[0])
+        {
+            case state.IDLE:
+            case state.LILSTEP:
+            case state.RUN:
+            case state.JUMP:
+            case state.SLIDE:
+                //Do something
+            break;
+
+            default:
+                //Do the thing;
+            break;
+        } */
+
+        //gravMod = (overlap == 3) ? gravMod = 3 : gravMod = 1;
+
         //Change the player direction.
         if((int)last[0] == (int)state.IDLE || (int)last[0] == (int)state.LILSTEP || (int)last[0] == (int)state.RUN || (int)last[0] == (int)state.JUMP || (int)last[0] == (int)state.SLIDE)
         { // When not climbing, hurt, or teleporting, the sprite direction is applied immediately.
